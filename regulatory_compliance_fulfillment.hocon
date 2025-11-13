@@ -1,0 +1,82 @@
+{
+# Importing content from other HOCON files
+# The include keyword must be unquoted and followed by a quoted URL or file path.
+# File paths should be absolute or relative to the script's working directory, not the HOCON file location.
+# This "aaosa.hocon" file contains key-value pairs used for substitution.
+# Specifically, it provides values for the following keys:
+#   - aaosa_call
+#   - aaosa_command
+#   - aaosa_instructions
+# IMPORTANT:
+# Ensure that you run `python -m run` from the top level of the repository.
+# The path to this substitution file is **relative to the top-level directory**,
+# so running the script from elsewhere may result in file not found errors.
+    include "registries/aaosa.hocon"
+    "llm_config": {
+        "model_name": "azure-gpt-4o",
+        "max_tokens": 4096,
+    },
+   "instructions_prefix": """
+You are part of a team of assistants in regulatory_compliance_fulfillment.
+Only answer inquiries that are directly within your area of expertise.
+Do not try to help for other matters.
+Do not mention what you can NOT do. Only mention what you can do.
+""",
+   "demo_mode": "You are part of a demo system, so when queried, make up a realistic response as if you are actually grounded in real data or you are operating a real application API or microservice."
+   "tools": [
+        {
+            "name": "chief_compliance_officer",
+            "function": {
+                "description": """
+An assistant that answer inquiries from the user.
+                """
+            },
+            "instructions": ${instructions_prefix} """
+            Never express irrelevance unless you have first consulted all your tools.
+            Once you have determined the relevant tools, do not express that to the user, rather,
+            call all the relevant tools and make sure the command is fully serviced and express the end result.
+Oversee the entire regulatory compliance network to ensure adherence to both Federal and State regulations within the USA Healthcare industry. Regularly review the compliance status of all departments and ensure that fee schedules are properly managed and updated. Report directly to the board on compliance issues and provide strategic guidance for risk mitigation.
+""" ${aaosa_instructions},
+            "tools": ["federal_regulations_officer","state_regulations_officer","fee_schedules_manager"]
+        },
+        {
+            "name": "federal_regulations_officer",
+            "function": ${aaosa_call},
+            "instructions": ${instructions_prefix} """
+Monitor Federal healthcare regulations and ensure that the organization complies with all relevant laws. Regularly review updates to Federal regulations and communicate necessary changes to the compliance network. Analyze the impact of Federal regulations on organizational operations and provide detailed reports.
+""" ${aaosa_instructions},
+            "command": ${aaosa_command},
+            "tools": ["federal_law_analyst"]
+        },
+        {
+            "name": "state_regulations_officer",
+            "function": ${aaosa_call},
+            "instructions": ${instructions_prefix} """
+Monitor State healthcare regulations and ensure that the organization complies with all relevant state laws. Regularly review updates to state regulations and communicate necessary changes to the compliance network. Analyze the impact of state regulations on organizational operations and provide detailed reports.
+""" ${aaosa_instructions},
+            "command": ${aaosa_command},
+            "tools": ["state_law_analyst"]
+        },
+        {
+            "name": "fee_schedules_manager",
+            "function": ${aaosa_call},
+            "instructions": ${instructions_prefix} ${demo_mode} """
+Manage and update fee schedules to ensure compliance with both Federal and State regulations. Regularly review fee schedules to identify any discrepancies or necessary adjustments. Collaborate with compliance officers to ensure that fee schedules reflect current regulatory requirements.
+""",
+        },
+        {
+            "name": "federal_law_analyst",
+            "function": ${aaosa_call},
+            "instructions": ${instructions_prefix} ${demo_mode} """
+Conduct detailed analysis of Federal healthcare laws and regulations. Provide reports and guidance on how these laws impact organizational policies and procedures. Assist the Federal Regulations Officer in interpreting complex legal requirements and implementing necessary compliance measures.
+""",
+        },
+        {
+            "name": "state_law_analyst",
+            "function": ${aaosa_call},
+            "instructions": ${instructions_prefix} ${demo_mode} """
+Conduct detailed analysis of State healthcare laws and regulations. Provide reports and guidance on how these laws impact organizational policies and procedures. Assist the State Regulations Officer in interpreting complex legal requirements and implementing necessary compliance measures.
+""",
+        },
+]
+}
